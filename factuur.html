@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Factuur Analyser</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            text-align: center;
+            background-color: #f4f4f4;
+        }
+        #container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        #drop-zone {
+            padding: 20px;
+            border: 2px dashed #007bff;
+            background-color: #e9f5ff;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        #output {
+            margin-top: 20px;
+            text-align: left;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+        #file-input, #export-btn {
+            display: none;
+        }
+        .btn {
+            margin-top: 15px;
+            padding: 10px 15px;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+        .btn-success:hover {
+            background-color: #1e7e34;
+        }
+        #error {
+            color: red;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="container">
+        <h2>📄 Factuur Analyser</h2>
+        <div id="drop-zone">Klik of sleep meerdere PDF-bestanden hierheen</div>
+        <input type="file" id="file-input" accept="application/pdf" multiple>
+
+        <div id="output"></div>
+        <p id="error"></p>
+
+        <button id="export-btn" class="btn btn-success" onclick="exportToCSV()">📥 Exporteren naar CSV</button>
+    </div>
+
+    <script>
+        let allExtractedData = [];
+
+        document.getElementById('drop-zone').addEventListener('click', function () {
+            document.getElementById('file-input').click();
+        });
+
+        document.getElementById('file-input').addEventListener('change', function (event) {
+            const files = Array.from(event.target.files);
+            allExtractedData = [];
+            processMultipleFiles(files);
+        });
+
+        async function processMultipleFiles(files) {
+            for (const file of files) {
+                await extractDataFromPDF(file);
+            }
+            updateTable();
+        }
+
+        async function extractDataFromPDF(file) {
+            const fileReader = new FileReader();
+            fileReader.readAsArrayBuffer(file);
+            fileReader.onload = async function () {
+                const pdfData = new Uint8Array(fileReader.result);
+                const pdf = await pdfjsLib.getDocument({ data: pdfData }).promise;
+                let extractedText = '';
+
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const textContent = await page.getTextContent();
+                    extractedText += textContent.items.map(item => item.str).join(' ') + '\n';
+                }
+
+                processExtractedText(extractedText);
+            };
+        }
+
+        function extractInvoiceAndClientNumbers(text) {
+            const klantMatch = text.match(/Klantnr\.*\s*(\d+)/);
+            let invoiceMatch = text.match(/Factuurnr\.*\s*(\d+)(?:\s*Blad\s*\d+)?/);
+            return {
+                klantNummer: klantMatch ? klantMatch[1] : 'Niet gevonden',
+                factuurnummer: invoiceMatch ? invoiceMatch[1] : 'Niet gevonden'
+            };
+        }
+
+        function processExtractedText(text) {
+            const dateMatch = text.match(/\b(\d{1,2}-\d{1,2}-\d{4})\b/);
+            const invoiceClientData = extractInvoiceAndClientNumbers(text);
+            const exclBtwMatch = text.match(/Totaal excl. btw\s*(\d+,\d{2})/);
+            const btwMatch = text.match(/21 %\s*(\d+,\d{2})\s*(\d+,\d{2})/);
+            const inclBtwMatch = text.match(/Totaal incl. btw\s*EUR\s*(\d+,\d{2})/);
+
+            const factuurDatum = dateMatch ? dateMatch[1] : 'Niet gevonden';
+            const bedragExclBtw = exclBtwMatch ? exclBtwMatch[1].replace(',', '.') : '0.00';
+            const btwBedrag = btwMatch ? btwMatch[2].replace(',', '.') : '0.00';
+            const totaalBedrag = inclBtwMatch ? inclBtwMatch[1].replace(',', '.') : 
+                                 (parseFloat(bedragExclBtw) + parseFloat(btwBedrag)).toFixed(2);
+
+            allExtractedData.push({
+                datum: factuurDatum,
+                klantnr: invoiceClientData.klantNummer,
+                factuurnummer: invoiceClientData.factuurnummer,
+                exclBtw: bedragExclBtw,
+                btw: btwBedrag,
+                inclBtw: totaalBedrag
+            });
+
+            updateTable();
+        }
+
+        function updateTable() {
+            if (allExtractedData.length === 0) {
+                document.getElementById('export-btn').style.display = "none";
+                return;
+            }
+
+            document.getElementById('export-btn').style.display = "block";
+
+            let tableHTML = `<h3>✅ Factuurgegevens</h3>
+                <table>
+                    <tr>
+                        <th>📅 Factuurdatum</th>
+                        <th>🆔 Klantnr.</th>
+                        <th>🧾 Factuurnummer</th>
+                        <th>💰 Excl. BTW</th>
+                        <th>📊 Btw</th>
+                        <th>💵 Incl. BTW</th>
+                    </tr>`;
+
+            allExtractedData.forEach(data => {
+                tableHTML += `
+                    <tr>
+                        <td>${data.datum}</td>
+                        <td>${data.klantnr}</td>
+                        <td>${data.factuurnummer}</td>
+                        <td>€${data.exclBtw}</td>
+                        <td>€${data.btw}</td>
+                        <td>€${data.inclBtw}</td>
+                    </tr>`;
+            });
+
+            tableHTML += `</table>`;
+            document.getElementById('output').innerHTML = tableHTML;
+        }
+
+        function exportToCSV() {
+            let csvContent = "data:text/csv;charset=utf-8,Factuurdatum,Klantnummer,Factuurnummer,Excl. BTW,BTW,Incl. BTW\n";
+
+            allExtractedData.forEach(row => {
+                csvContent += `${row.datum},${row.klantnr},${row.factuurnummer},${row.exclBtw},${row.btw},${row.inclBtw}\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "factuurgegevens.csv");
+            document.body.appendChild(link);
+            link.click();
+        }
+    </script>    
+
+</body>
+</html>
