@@ -1,0 +1,119 @@
+/* Algemene stijl */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f9f9f9;
+    text-align: center;
+}
+
+/* Navigatiebalk */
+nav {
+    background-color: #ff9800;
+    padding: 25px 0;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+}
+
+nav ul li {
+    margin: 0 20px;
+}
+
+nav ul li a {
+    text-decoration: none;
+    color: white;
+    font-size: 18px;
+    padding: 20px 15px;
+    border-radius: 5px;
+}
+
+nav ul li a.active, nav ul li a:hover {
+    background-color: #e68900;
+}
+
+/* Container */
+.container {
+    max-width: 800px;
+    margin: 20px auto;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Tabellen */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+
+th {
+    background-color: #ff9800;
+    color: white;
+}
+
+tr:nth-child(even) {
+    background-color: #fff8e1;
+}
+
+/* Knoppen */
+button {
+    background: #ff9800;
+    color: white;
+    border: none;
+    padding: 12px 18px;
+    margin-top: 15px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: 0.3s;
+}
+
+button:hover {
+    background: #e68900;
+}
+
+/* Achtergrondkleur per pagina */
+.index-body {
+    background-color: #ffe0b2; /* Lichtblauw */
+}
+
+.technische-body {
+    background-color: #c8e6c9; /* Licht oranje */
+}
+
+.warmte-body {
+    background-color: #ef9a9a; /* Licht turquoise */
+}
+
+.custom-file-input {
+    display: none;
+}
+
+.file-label {
+    display: inline-block;
+    background-color: #d6a152;
+    color: white;
+    padding: 9px 19px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: 0.3s;
+}
+
+.file-label:hover {
+    background-color: #e68900;
+}

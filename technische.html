@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Technische Unie Facturen</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+</head>
+<body>
+
+    <body class="technische-body">
+
+<nav>
+    <ul>
+        <li><a href="index.html">🏠 Home</a></li>
+        <li><a href="technische.html" class="active">🔧 Technische Unie</a></li>
+        <li><a href="warmte.html">🔥 Warmteservice</a></li>
+    </ul>
+</nav>
+
+<div class="container">
+    <h2>🔧 Technische Unie Factuur Extractor</h2>
+    <label for="fileInput" class="file-label">📂 Selecteer Facturen (PDF)</label>
+    <input type="file" id="fileInput" accept="application/pdf" multiple class="custom-file-input">
+
+    <button onclick="exportCSV()">📥 Exporteer naar CSV</button>
+
+    <h3>Factuurgegevens</h3>
+    <table id="invoiceTable">
+        <thead>
+            <tr>
+                <th>Bedrijfsnaam</th>
+                <th>Datum</th>
+                <th>Klantnummer</th>
+                <th>Factuurnummer</th>
+                <th>Totaal excl. BTW</th>
+                <th>BTW Bedrag</th>
+                <th>Totaal incl. BTW</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<script src="js/technische.js"></script>
+</body>
+</html>
