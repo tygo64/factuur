@@ -87,3 +87,33 @@ function displayInvoiceData(data) {
     `;
     tableBody.appendChild(row);
 }
+
+function exportCSV() {
+    let table = document.getElementById("invoiceTable");
+    let rows = table.querySelectorAll("tbody tr");
+
+    if (rows.length === 0) {
+        alert("⚠️ Geen factuurgegevens om te exporteren!");
+        return;
+    }
+
+    let csvContent = "data:text/csv;charset=utf-8,";
+    let headers = ["Bedrijfsnaam", "Datum", "Klantnummer", "Factuurnummer", "Totaal excl. BTW", "BTW Bedrag", "Totaal incl. BTW"];
+    
+    csvContent += headers.join(",") + "\n"; // Voeg kolomnamen toe
+
+    rows.forEach(row => {
+        let rowData = Array.from(row.cells).map(cell => `"${cell.innerText}"`);
+        csvContent += rowData.join(",") + "\n"; // Voeg elke rij toe
+    });
+
+    // Maak een downloadbare link aan
+    let encodedUri = encodeURI(csvContent);
+    let link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "factuur_data.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
